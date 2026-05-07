@@ -1,0 +1,803 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .phone {
+    width: 360px;
+    min-height: 700px;
+    background: #08090d;
+    border-radius: 36px;
+    border: 1.5px solid #1e2030;
+    overflow: hidden;
+    position: relative;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen { display: none; flex-direction: column; height: 100%; }
+  .screen.active { display: flex; }
+
+  /* Status bar */
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 20px 4px; font-size: 11px; color: #888; flex-shrink: 0;
+  }
+
+  /* SPLASH */
+  #splash {
+    background: #08090d;
+    align-items: center; justify-content: center; gap: 16px;
+    min-height: 700px;
+  }
+  .logo-ring {
+    width: 90px; height: 90px; border-radius: 24px;
+    background: linear-gradient(135deg, #0d1f0d, #0a2a14);
+    border: 1.5px solid #1a4d2a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px;
+  }
+  .app-title { font-size: 22px; font-weight: 500; color: #e8f5e8; letter-spacing: 2px; text-align: center; }
+  .app-sub { font-size: 13px; color: #4caf7d; text-align: center; letter-spacing: 0.5px; }
+
+  /* ONBOARDING */
+  #onboarding { background: #08090d; justify-content: space-between; }
+  .ob-art {
+    height: 280px; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; position: relative;
+  }
+  .ob-circle-outer {
+    width: 160px; height: 160px; border-radius: 50%;
+    border: 1.5px solid #1a3a2a; display: flex; align-items: center; justify-content: center;
+  }
+  .ob-circle-inner {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: linear-gradient(135deg, #0d2a1a, #0a1f12);
+    border: 1.5px solid #2a5a3a;
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+  }
+  .ob-content { padding: 0 28px 0; flex: 1; }
+  .ob-step { font-size: 11px; color: #4caf7d; letter-spacing: 2px; margin-bottom: 12px; }
+  .ob-headline { font-size: 22px; font-weight: 500; color: #e8f5e8; line-height: 1.3; margin-bottom: 12px; }
+  .ob-desc { font-size: 14px; color: #888; line-height: 1.6; }
+  .ob-dots { display: flex; gap: 6px; padding: 16px 28px 0; }
+  .ob-dot { width: 24px; height: 4px; border-radius: 2px; background: #1e2030; transition: background 0.3s; }
+  .ob-dot.active { background: #4caf7d; }
+  .ob-nav { padding: 20px 28px 32px; display: flex; justify-content: space-between; align-items: center; }
+  .ob-skip { font-size: 13px; color: #555; background: none; border: none; cursor: pointer; color: #555; }
+  .btn-primary {
+    background: linear-gradient(135deg, #1a6b3c, #0f4a28);
+    border: 1px solid #2a8a4c; color: #7effa8; font-size: 13px; font-weight: 500;
+    padding: 12px 24px; border-radius: 12px; cursor: pointer; letter-spacing: 0.5px;
+  }
+  .btn-cta {
+    background: linear-gradient(135deg, #1a6b3c, #0f4a28);
+    border: 1px solid #2a8a4c; color: #7effa8; font-size: 14px; font-weight: 500;
+    padding: 14px 32px; border-radius: 14px; cursor: pointer; letter-spacing: 1px;
+    width: 100%;
+  }
+
+  /* HOME */
+  #home { background: #08090d; overflow-y: auto; }
+  .home-header { padding: 12px 20px 8px; flex-shrink: 0; }
+  .home-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .greeting { font-size: 18px; color: #e8f5e8; font-weight: 500; }
+  .streak-pill {
+    background: #0d2a1a; border: 1px solid #1a4d2a;
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #4caf7d;
+  }
+  .home-sub { font-size: 13px; color: #555; }
+
+  /* Quote */
+  .quote-card {
+    margin: 8px 20px; padding: 14px 16px;
+    background: #0a1a10; border: 1px solid #1a3a22; border-radius: 14px;
+  }
+  .quote-text { font-size: 13px; color: #7effa8; line-height: 1.5; font-style: italic; }
+  .quote-author { font-size: 11px; color: #4a7a5a; margin-top: 4px; }
+
+  /* Progress */
+  .progress-card {
+    margin: 8px 20px; padding: 14px 16px;
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 14px;
+  }
+  .progress-label { font-size: 11px; color: #555; letter-spacing: 1px; margin-bottom: 8px; }
+  .progress-bar { height: 6px; background: #1a2a1a; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #1a6b3c, #4caf7d); }
+  .progress-meta { display: flex; justify-content: space-between; margin-top: 6px; }
+  .progress-xp { font-size: 12px; color: #4caf7d; font-weight: 500; }
+  .progress-level { font-size: 12px; color: #555; }
+
+  /* Mission */
+  .mission-card {
+    margin: 8px 20px; padding: 14px 16px;
+    background: #0a1a10; border: 1px solid #2a5a3a; border-radius: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mission-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: #0f3020; border: 1px solid #1a5030;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .mission-label { font-size: 11px; color: #4caf7d; letter-spacing: 1px; }
+  .mission-title { font-size: 14px; color: #e8f5e8; font-weight: 500; }
+  .mission-sub { font-size: 12px; color: #555; }
+  .mission-btn {
+    margin-left: auto; background: #1a6b3c; border: none;
+    color: #7effa8; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer; flex-shrink: 0;
+  }
+
+  /* Quick cards */
+  .section-title { font-size: 13px; color: #555; letter-spacing: 1px; padding: 8px 20px 6px; }
+  .cards-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 8px;
+  }
+  .quick-card {
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 14px;
+    padding: 14px 12px; cursor: pointer; transition: border-color 0.2s;
+  }
+  .quick-card:hover { border-color: #2a5a3a; }
+  .qc-icon { font-size: 22px; margin-bottom: 8px; }
+  .qc-title { font-size: 13px; color: #d0ecd8; font-weight: 500; line-height: 1.3; }
+  .qc-sub { font-size: 11px; color: #4a6a54; margin-top: 3px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    display: flex; background: #0a0f0a; border-top: 1px solid #1a2a1a;
+    padding: 10px 0 16px; flex-shrink: 0;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; color: #555; cursor: pointer; padding: 4px 0; background: none; border: none;
+  }
+  .nav-item.active { color: #4caf7d; }
+  .nav-item i { font-size: 20px; }
+
+  /* BREATHING */
+  #breathing { background: #08090d; overflow-y: auto; }
+  .screen-header {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px 12px;
+  }
+  .back-btn { background: none; border: none; color: #4caf7d; cursor: pointer; font-size: 20px; padding: 4px; }
+  .screen-title { font-size: 18px; color: #e8f5e8; font-weight: 500; }
+
+  .breath-circle-wrap {
+    display: flex; align-items: center; justify-content: center; padding: 20px 0;
+  }
+  .breath-outer {
+    width: 170px; height: 170px; border-radius: 50%; border: 1.5px solid #1a4d2a;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .breath-inner {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: linear-gradient(135deg, #0d2a1a, #0a1f12);
+    border: 1.5px solid #2a6a3a;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: transform 1s ease-in-out;
+  }
+  .breath-label { font-size: 13px; color: #4caf7d; }
+  .breath-count { font-size: 28px; font-weight: 500; color: #e8f5e8; }
+  .breath-phase { font-size: 11px; color: #555; }
+
+  .breath-controls { padding: 0 20px; }
+  .breath-exercise-list { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 16px; }
+  .ex-card {
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 14px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+  }
+  .ex-card.active { border-color: #2a6a3a; }
+  .ex-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf7d; flex-shrink: 0; }
+  .ex-name { font-size: 14px; color: #d0ecd8; font-weight: 500; }
+  .ex-desc { font-size: 12px; color: #4a6a54; }
+  .ex-badge {
+    margin-left: auto; background: #0f3020; border: 1px solid #1a5030;
+    color: #4caf7d; font-size: 11px; padding: 4px 10px; border-radius: 8px; flex-shrink: 0;
+  }
+  .start-btn-wrap { padding: 8px 20px 16px; }
+
+  /* KEGEL */
+  #kegel { background: #08090d; overflow-y: auto; }
+  .level-tabs { display: flex; gap: 8px; padding: 0 20px 16px; }
+  .level-tab {
+    flex: 1; padding: 8px; border-radius: 10px; font-size: 12px; font-weight: 500;
+    background: #0a0f0a; border: 1px solid #1a2a1a; color: #555; cursor: pointer; text-align: center;
+  }
+  .level-tab.active { background: #0f3020; border-color: #2a6a3a; color: #4caf7d; }
+  .kegel-timer {
+    margin: 0 20px 16px; background: #0a1a10; border: 1px solid #1a3a22; border-radius: 18px;
+    padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .kegel-phase { font-size: 11px; color: #4caf7d; letter-spacing: 1px; }
+  .kegel-time { font-size: 52px; font-weight: 500; color: #e8f5e8; line-height: 1; }
+  .kegel-sub { font-size: 12px; color: #555; }
+  .kegel-progress { width: 100%; height: 6px; background: #1a2a1a; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .kegel-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #1a6b3c, #4caf7d); transition: width 0.5s; }
+  .kegel-steps { display: flex; flex-direction: column; gap: 8px; padding: 0 20px 16px; }
+  .kegel-step {
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 12px;
+    padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%; background: #0f3020; border: 1px solid #2a6a3a;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; color: #4caf7d; flex-shrink: 0;
+  }
+  .step-text { font-size: 13px; color: #aaa; line-height: 1.5; }
+  .step-text strong { color: #d0ecd8; font-weight: 500; }
+
+  /* PROGRESS */
+  #progress-screen { background: #08090d; overflow-y: auto; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 10px; }
+  .stat-card {
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 14px; padding: 14px 12px;
+  }
+  .stat-label { font-size: 11px; color: #555; letter-spacing: 1px; margin-bottom: 4px; }
+  .stat-value { font-size: 24px; font-weight: 500; color: #4caf7d; }
+  .stat-unit { font-size: 12px; color: #555; margin-top: 2px; }
+  .badges-list { display: flex; gap: 10px; padding: 0 20px 10px; overflow-x: auto; }
+  .badge-item {
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 12px;
+    padding: 10px 12px; text-align: center; flex-shrink: 0; min-width: 70px;
+  }
+  .badge-icon { font-size: 22px; margin-bottom: 4px; }
+  .badge-name { font-size: 10px; color: #4a6a54; }
+  .badge-item.earned { border-color: #2a6a3a; }
+  .badge-item.earned .badge-name { color: #4caf7d; }
+  .chart-card {
+    margin: 0 20px 12px; background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 14px; padding: 16px;
+  }
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, #4caf7d, #1a6b3c); transition: height 0.5s; }
+  .chart-day { font-size: 10px; color: #555; }
+
+  /* PREMIUM */
+  #premium { background: #08090d; overflow-y: auto; }
+  .premium-hero {
+    margin: 8px 20px 12px; padding: 24px 20px;
+    background: linear-gradient(135deg, #0a1f12, #0d2a1a);
+    border: 1px solid #1a5030; border-radius: 18px; text-align: center;
+  }
+  .premium-badge { font-size: 11px; color: #4caf7d; letter-spacing: 2px; margin-bottom: 10px; }
+  .premium-title { font-size: 20px; font-weight: 500; color: #e8f5e8; line-height: 1.3; margin-bottom: 8px; }
+  .premium-sub { font-size: 13px; color: #555; }
+  .benefits-list { display: flex; flex-direction: column; gap: 8px; padding: 0 20px 12px; }
+  .benefit-row {
+    display: flex; align-items: center; gap: 10px;
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 12px; padding: 12px 14px;
+  }
+  .benefit-icon { font-size: 18px; color: #4caf7d; flex-shrink: 0; }
+  .benefit-text { font-size: 13px; color: #d0ecd8; }
+  .price-card {
+    margin: 4px 20px 8px; background: linear-gradient(135deg, #0f3020, #0a2015);
+    border: 1px solid #2a7a4a; border-radius: 16px; padding: 20px; text-align: center;
+  }
+  .price-label { font-size: 11px; color: #4caf7d; letter-spacing: 1px; margin-bottom: 8px; }
+  .price-amount { font-size: 34px; font-weight: 500; color: #e8f5e8; }
+  .price-period { font-size: 12px; color: #555; margin-top: 4px; }
+  .cta-wrap { padding: 0 20px 24px; }
+  .btn-cta-premium {
+    width: 100%; background: linear-gradient(135deg, #1a6b3c, #0f4a28);
+    border: 1px solid #3a9a5c; color: #7effa8; font-size: 14px; font-weight: 500;
+    padding: 16px; border-radius: 14px; cursor: pointer; letter-spacing: 0.5px;
+  }
+
+  /* 7 DAY PROGRAM */
+  #program { background: #08090d; overflow-y: auto; }
+  .day-cards { display: flex; flex-direction: column; gap: 8px; padding: 0 20px 20px; }
+  .day-card {
+    background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 14px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+  }
+  .day-card.done { border-color: #1a5030; }
+  .day-card.today { border-color: #2a7a4a; background: #0a1a10; }
+  .day-num {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #0f1a10; border: 1px solid #1a3a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: #4caf7d; font-weight: 500; flex-shrink: 0;
+  }
+  .day-card.done .day-num { background: #0f3020; border-color: #2a6a3a; color: #7effa8; }
+  .day-card.today .day-num { background: #1a5030; border-color: #3a8a5a; }
+  .day-title { font-size: 14px; color: #d0ecd8; font-weight: 500; }
+  .day-tasks { font-size: 12px; color: #4a6a54; margin-top: 2px; }
+  .day-status { margin-left: auto; font-size: 18px; flex-shrink: 0; }
+</style>
+
+<h2 class="sr-only">Controle Masculino — preview interativo do app mobile</h2>
+
+<div style="padding: 1rem 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+
+  <!-- Navigation tabs above phone -->
+  <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 360px;">
+    <button onclick="showScreen('splash')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Splash</button>
+    <button onclick="showScreen('onboarding')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Onboarding</button>
+    <button onclick="showScreen('home')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Home</button>
+    <button onclick="showScreen('breathing')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Respiração</button>
+    <button onclick="showScreen('kegel')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Kegel</button>
+    <button onclick="showScreen('program')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">7 Dias</button>
+    <button onclick="showScreen('progress-screen')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Evolução</button>
+    <button onclick="showScreen('premium')" style="background: #0a1a10; border: 1px solid #1a4d2a; color: #4caf7d; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Premium</button>
+  </div>
+
+  <div class="phone">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash" class="screen active" style="align-items: center; justify-content: center; gap: 16px; min-height: 700px; padding: 40px 20px;">
+      <div class="logo-ring">💪</div>
+      <div class="app-title">CONTROLE<br>MASCULINO</div>
+      <div class="app-sub">Mais controle. Mais confiança.</div>
+      <div style="margin-top: 24px;">
+        <button class="btn-primary" onclick="showScreen('onboarding')">ENTRAR →</button>
+      </div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="onboarding" class="screen" style="justify-content: space-between; min-height: 700px;">
+      <div class="ob-art">
+        <div class="ob-circle-outer">
+          <div class="ob-circle-inner" id="ob-icon">🧠</div>
+        </div>
+      </div>
+      <div class="ob-content">
+        <div class="ob-step" id="ob-step">PASSO 1 DE 3</div>
+        <div class="ob-headline" id="ob-headline">Aprenda a desenvolver controle real</div>
+        <div class="ob-desc" id="ob-desc">Técnicas práticas e aplicáveis no dia a dia para construir autocontrole duradouro.</div>
+      </div>
+      <div class="ob-dots">
+        <div class="ob-dot active" id="dot0"></div>
+        <div class="ob-dot" id="dot1"></div>
+        <div class="ob-dot" id="dot2"></div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-skip" onclick="showScreen('home')">Pular</button>
+        <button class="btn-primary" id="ob-btn" onclick="nextOB()">PRÓXIMO →</button>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <div id="home" class="screen" style="min-height: 700px;">
+      <div class="statusbar"><span>09:41</span><span>● ▮▮▮</span></div>
+      <div class="home-header">
+        <div class="home-top">
+          <div class="greeting">Olá, Rafael 👋</div>
+          <div class="streak-pill">🔥 7 dias</div>
+        </div>
+        <div class="home-sub">Hoje é um grande dia para evoluir.</div>
+      </div>
+
+      <div class="quote-card">
+        <div class="quote-text">"Disciplina é a ponte entre onde você está e onde quer chegar."</div>
+        <div class="quote-author">— Controle Masculino</div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-label">NÍVEL 4 · PROGRESSO</div>
+        <div class="progress-bar"><div class="progress-fill" style="width: 65%;"></div></div>
+        <div class="progress-meta">
+          <div class="progress-xp">650 XP</div>
+          <div class="progress-level">Meta: 1000 XP</div>
+        </div>
+      </div>
+
+      <div class="mission-card">
+        <div class="mission-icon">🎯</div>
+        <div>
+          <div class="mission-label">MISSÃO DO DIA</div>
+          <div class="mission-title">Kegel + Respiração</div>
+          <div class="mission-sub">15 min · Iniciante</div>
+        </div>
+        <button class="mission-btn" onclick="showScreen('kegel')">INICIAR</button>
+      </div>
+
+      <div class="section-title">ACESSO RÁPIDO</div>
+      <div class="cards-grid">
+        <div class="quick-card" onclick="showScreen('breathing')">
+          <div class="qc-icon">🫁</div>
+          <div class="qc-title">Respiração Guiada</div>
+          <div class="qc-sub">4 exercícios</div>
+        </div>
+        <div class="quick-card" onclick="showScreen('kegel')">
+          <div class="qc-icon">⚡</div>
+          <div class="qc-title">Rotina de Kegel</div>
+          <div class="qc-sub">3 níveis</div>
+        </div>
+        <div class="quick-card" onclick="showScreen('program')">
+          <div class="qc-icon">📅</div>
+          <div class="qc-title">Protocolo 7 Dias</div>
+          <div class="qc-sub">Dia 4 de 7</div>
+        </div>
+        <div class="quick-card" onclick="showScreen('progress-screen')">
+          <div class="qc-icon">📈</div>
+          <div class="qc-title">Minha Evolução</div>
+          <div class="qc-sub">Ver estatísticas</div>
+        </div>
+        <div class="quick-card">
+          <div class="qc-icon">🧘</div>
+          <div class="qc-title">Controle Mental</div>
+          <div class="qc-sub">Foco & confiança</div>
+        </div>
+        <div class="quick-card" onclick="showScreen('premium')">
+          <div class="qc-icon">🔓</div>
+          <div class="qc-title">Área Premium</div>
+          <div class="qc-sub">Desbloquear</div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <button class="nav-item active" onclick="showScreen('home')">
+          <i class="ti ti-home" aria-hidden="true"></i><span>Início</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('program')">
+          <i class="ti ti-calendar" aria-hidden="true"></i><span>Programa</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('progress-screen')">
+          <i class="ti ti-chart-bar" aria-hidden="true"></i><span>Evolução</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('premium')">
+          <i class="ti ti-star" aria-hidden="true"></i><span>Premium</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BREATHING -->
+    <div id="breathing" class="screen" style="min-height: 700px;">
+      <div class="statusbar"><span>09:41</span><span>● ▮▮▮</span></div>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="screen-title">Respiração Guiada</div>
+      </div>
+
+      <div class="breath-circle-wrap">
+        <div class="breath-outer">
+          <div class="breath-inner" id="breath-circle">
+            <div class="breath-label" id="breath-label">INSPIRE</div>
+            <div class="breath-count" id="breath-count">4</div>
+            <div class="breath-phase" id="breath-phase">segundos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="breath-exercise-list">
+        <div class="ex-card active" onclick="selectEx(this, '4-4-6', 4, 4, 6)">
+          <div class="ex-dot"></div>
+          <div>
+            <div class="ex-name">Respiração 4-4-6</div>
+            <div class="ex-desc">Inspire 4s · Segure 4s · Expire 6s</div>
+          </div>
+          <div class="ex-badge">Ativo</div>
+        </div>
+        <div class="ex-card" onclick="selectEx(this, 'lenta', 5, 0, 7)">
+          <div class="ex-dot"></div>
+          <div>
+            <div class="ex-name">Respiração Lenta</div>
+            <div class="ex-desc">Inspire 5s · Expire 7s</div>
+          </div>
+        </div>
+        <div class="ex-card" onclick="selectEx(this, 'ansiedade', 4, 7, 8)">
+          <div class="ex-dot"></div>
+          <div>
+            <div class="ex-name">Controle da Ansiedade</div>
+            <div class="ex-desc">Inspire 4s · Segure 7s · Expire 8s</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-btn-wrap">
+        <button class="btn-cta" id="breath-btn" onclick="toggleBreath()">INICIAR EXERCÍCIO</button>
+      </div>
+
+      <div class="bottom-nav">
+        <button class="nav-item" onclick="showScreen('home')"><i class="ti ti-home" aria-hidden="true"></i><span>Início</span></button>
+        <button class="nav-item" onclick="showScreen('program')"><i class="ti ti-calendar" aria-hidden="true"></i><span>Programa</span></button>
+        <button class="nav-item" onclick="showScreen('progress-screen')"><i class="ti ti-chart-bar" aria-hidden="true"></i><span>Evolução</span></button>
+        <button class="nav-item" onclick="showScreen('premium')"><i class="ti ti-star" aria-hidden="true"></i><span>Premium</span></button>
+      </div>
+    </div>
+
+    <!-- KEGEL -->
+    <div id="kegel" class="screen" style="min-height: 700px;">
+      <div class="statusbar"><span>09:41</span><span>● ▮▮▮</span></div>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="screen-title">Rotina de Kegel</div>
+      </div>
+      <div class="level-tabs">
+        <div class="level-tab active" onclick="setLevel(this,'Iniciante',3,6)">Iniciante</div>
+        <div class="level-tab" onclick="setLevel(this,'Intermediário',5,10)">Intermediário</div>
+        <div class="level-tab" onclick="setLevel(this,'Avançado',8,15)">Avançado</div>
+      </div>
+      <div class="kegel-timer">
+        <div class="kegel-phase" id="kegel-phase">CONTRAÇÃO</div>
+        <div class="kegel-time" id="kegel-time">3</div>
+        <div class="kegel-sub" id="kegel-sub">segure e respire normalmente</div>
+        <div class="kegel-progress"><div class="kegel-fill" id="kegel-fill" style="width: 0%;"></div></div>
+      </div>
+      <div class="kegel-steps">
+        <div class="kegel-step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Posição:</strong> Sente-se ou deite confortavelmente. Relaxe os músculos ao redor.</div>
+        </div>
+        <div class="kegel-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Contração:</strong> Contraia os músculos do assoalho pélvico como se fosse segurar o fluxo urinário.</div>
+        </div>
+        <div class="kegel-step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Segure:</strong> Mantenha a contração pelo tempo indicado sem prender a respiração.</div>
+        </div>
+        <div class="kegel-step">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>Relaxe:</strong> Solte completamente por igual tempo antes de repetir.</div>
+        </div>
+      </div>
+      <div class="start-btn-wrap">
+        <button class="btn-cta" id="kegel-btn" onclick="toggleKegel()">INICIAR TREINO</button>
+      </div>
+    </div>
+
+    <!-- 7 DAY PROGRAM -->
+    <div id="program" class="screen" style="min-height: 700px;">
+      <div class="statusbar"><span>09:41</span><span>● ▮▮▮</span></div>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="screen-title">Protocolo 7 Dias</div>
+      </div>
+      <div class="day-cards">
+        <div class="day-card done">
+          <div class="day-num">1</div>
+          <div><div class="day-title">Kegel + Respiração</div><div class="day-tasks">10 reps · 4-4-6 · 15 min</div></div>
+          <div class="day-status">✅</div>
+        </div>
+        <div class="day-card done">
+          <div class="day-num">2</div>
+          <div><div class="day-title">Controle de Ritmo</div><div class="day-tasks">Start-stop · Consciência corporal</div></div>
+          <div class="day-status">✅</div>
+        </div>
+        <div class="day-card done">
+          <div class="day-num">3</div>
+          <div><div class="day-title">Foco Mental</div><div class="day-tasks">Meditação · Visualização positiva</div></div>
+          <div class="day-status">✅</div>
+        </div>
+        <div class="day-card today">
+          <div class="day-num">4</div>
+          <div><div class="day-title">Kegel Intensivo</div><div class="day-tasks">15 reps · Intermediário · 20 min</div></div>
+          <div class="day-status">▶️</div>
+        </div>
+        <div class="day-card">
+          <div class="day-num">5</div>
+          <div><div class="day-title">Respiração Profunda</div><div class="day-tasks">Ansiedade · Controle emocional</div></div>
+          <div class="day-status" style="color:#2a3a2a;">🔒</div>
+        </div>
+        <div class="day-card">
+          <div class="day-num">6</div>
+          <div><div class="day-title">Integração Total</div><div class="day-tasks">Todos os exercícios · 25 min</div></div>
+          <div class="day-status" style="color:#2a3a2a;">🔒</div>
+        </div>
+        <div class="day-card">
+          <div class="day-num">7</div>
+          <div><div class="day-title">Avaliação & Revisão</div><div class="day-tasks">Resultados · Próximo ciclo</div></div>
+          <div class="day-status" style="color:#2a3a2a;">🔒</div>
+        </div>
+      </div>
+      <div style="padding: 0 20px 24px;">
+        <button class="btn-cta" onclick="showScreen('kegel')">CONTINUAR DIA 4</button>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="progress-screen" class="screen" style="min-height: 700px;">
+      <div class="statusbar"><span>09:41</span><span>● ▮▮▮</span></div>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="screen-title">Minha Evolução</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">SEQUÊNCIA</div>
+          <div class="stat-value">7</div>
+          <div class="stat-unit">dias seguidos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">XP TOTAL</div>
+          <div class="stat-value">650</div>
+          <div class="stat-unit">pontos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">TREINOS</div>
+          <div class="stat-value">21</div>
+          <div class="stat-unit">concluídos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">NÍVEL</div>
+          <div class="stat-value">4</div>
+          <div class="stat-unit">Disciplinado</div>
+        </div>
+      </div>
+      <div class="section-title">ATIVIDADE SEMANAL</div>
+      <div class="chart-card">
+        <div class="chart-bars">
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 60%;"></div><div class="chart-day">Seg</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 80%;"></div><div class="chart-day">Ter</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 70%;"></div><div class="chart-day">Qua</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 90%;"></div><div class="chart-day">Qui</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 50%;"></div><div class="chart-day">Sex</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 75%;"></div><div class="chart-day">Sáb</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" style="height: 40%;"></div><div class="chart-day">Dom</div></div>
+        </div>
+      </div>
+      <div class="section-title">CONQUISTAS</div>
+      <div class="badges-list">
+        <div class="badge-item earned"><div class="badge-icon">🔥</div><div class="badge-name">7 Dias</div></div>
+        <div class="badge-item earned"><div class="badge-icon">⚡</div><div class="badge-name">1ª Semana</div></div>
+        <div class="badge-item earned"><div class="badge-icon">🧘</div><div class="badge-name">Zen</div></div>
+        <div class="badge-item"><div class="badge-icon">💎</div><div class="badge-name">30 Dias</div></div>
+        <div class="badge-item"><div class="badge-icon">🏆</div><div class="badge-name">Mestre</div></div>
+      </div>
+      <div style="height: 16px;"></div>
+    </div>
+
+    <!-- PREMIUM -->
+    <div id="premium" class="screen" style="min-height: 700px;">
+      <div class="statusbar"><span>09:41</span><span>● ▮▮▮</span></div>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="screen-title">Premium</div>
+      </div>
+      <div class="premium-hero">
+        <div class="premium-badge">✦ ACESSO COMPLETO</div>
+        <div class="premium-title">Desbloqueie o<br>Método Completo</div>
+        <div class="premium-sub">Protocolos avançados para resultados reais.</div>
+      </div>
+      <div class="benefits-list">
+        <div class="benefit-row"><i class="ti ti-bolt benefit-icon" aria-hidden="true"></i><div class="benefit-text">Protocolos avançados exclusivos</div></div>
+        <div class="benefit-row"><i class="ti ti-headphones benefit-icon" aria-hidden="true"></i><div class="benefit-text">Áudios guiados premium</div></div>
+        <div class="benefit-row"><i class="ti ti-calendar benefit-icon" aria-hidden="true"></i><div class="benefit-text">Rotinas mensais personalizadas</div></div>
+        <div class="benefit-row"><i class="ti ti-brain benefit-icon" aria-hidden="true"></i><div class="benefit-text">Técnicas de controle mental avançado</div></div>
+        <div class="benefit-row"><i class="ti ti-chart-line benefit-icon" aria-hidden="true"></i><div class="benefit-text">Acompanhamento completo de evolução</div></div>
+      </div>
+      <div class="price-card">
+        <div class="price-label">ACESSO MENSAL</div>
+        <div class="price-amount">1.990 KZ</div>
+        <div class="price-period">por mês · cancele quando quiser</div>
+      </div>
+      <div class="cta-wrap">
+        <button class="btn-cta-premium">QUERO ACESSO IMEDIATO</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var obStep = 0;
+  var obData = [
+    { icon: '🧠', step: 'PASSO 1 DE 3', headline: 'Aprenda a desenvolver controle real', desc: 'Técnicas práticas e aplicáveis no dia a dia para construir autocontrole duradouro.' },
+    { icon: '💪', step: 'PASSO 2 DE 3', headline: 'Controle mental e físico', desc: 'Treinos simples para melhorar sua confiança e desempenho naturalmente.' },
+    { icon: '📈', step: 'PASSO 3 DE 3', headline: 'Resultados progressivos', desc: 'Construa disciplina e acompanhe sua evolução dia após dia.' }
+  ];
+
+  function nextOB() {
+    if (obStep < 2) {
+      obStep++;
+      var d = obData[obStep];
+      document.getElementById('ob-icon').textContent = d.icon;
+      document.getElementById('ob-step').textContent = d.step;
+      document.getElementById('ob-headline').textContent = d.headline;
+      document.getElementById('ob-desc').textContent = d.desc;
+      for (var i = 0; i < 3; i++) {
+        document.getElementById('dot' + i).classList.toggle('active', i <= obStep);
+      }
+      if (obStep === 2) document.getElementById('ob-btn').textContent = 'COMEÇAR AGORA';
+    } else {
+      showScreen('home');
+    }
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    if (id !== 'breathing') { clearInterval(breathInterval); breathRunning = false; document.getElementById('breath-btn') && (document.getElementById('breath-btn').textContent = 'INICIAR EXERCÍCIO'); }
+    if (id !== 'kegel') { clearInterval(kegelInterval); kegelRunning = false; document.getElementById('kegel-btn') && (document.getElementById('kegel-btn').textContent = 'INICIAR TREINO'); }
+  }
+
+  // Breathing
+  var breathRunning = false, breathInterval = null;
+  var breathIn = 4, breathHold = 4, breathOut = 6;
+  var breathPhase = 0, breathTimer = 0;
+
+  function selectEx(el, name, ins, hold, out) {
+    document.querySelectorAll('.ex-card').forEach(function(c) { c.classList.remove('active'); c.querySelector('.ex-badge') && c.querySelector('.ex-badge').remove(); });
+    el.classList.add('active');
+    var b = document.createElement('div'); b.className = 'ex-badge'; b.textContent = 'Ativo'; el.appendChild(b);
+    breathIn = ins; breathHold = hold; breathOut = out;
+    clearInterval(breathInterval); breathRunning = false;
+    document.getElementById('breath-btn').textContent = 'INICIAR EXERCÍCIO';
+    document.getElementById('breath-count').textContent = ins;
+    document.getElementById('breath-label').textContent = 'INSPIRE';
+  }
+
+  function toggleBreath() {
+    if (!breathRunning) {
+      breathRunning = true;
+      breathPhase = 0; breathTimer = breathIn;
+      document.getElementById('breath-btn').textContent = 'PAUSAR';
+      runBreath();
+      breathInterval = setInterval(runBreath, 1000);
+    } else {
+      clearInterval(breathInterval); breathRunning = false;
+      document.getElementById('breath-btn').textContent = 'INICIAR EXERCÍCIO';
+    }
+  }
+
+  function runBreath() {
+    var phases = [
+      { label: 'INSPIRE', time: breathIn, scale: '1.15' },
+      { label: 'SEGURE', time: breathHold || 1, scale: '1.15' },
+      { label: 'EXPIRE', time: breathOut, scale: '1.0' }
+    ];
+    if (breathHold === 0 && breathPhase === 1) { breathPhase = 2; breathTimer = breathOut; }
+    var p = phases[breathPhase];
+    document.getElementById('breath-label').textContent = p.label;
+    document.getElementById('breath-count').textContent = breathTimer;
+    document.getElementById('breath-circle').style.transform = 'scale(' + p.scale + ')';
+    breathTimer--;
+    if (breathTimer < 0) {
+      breathPhase = (breathPhase + 1) % 3;
+      if (breathHold === 0 && breathPhase === 1) breathPhase = 2;
+      breathTimer = phases[breathPhase].time;
+    }
+  }
+
+  // Kegel
+  var kegelRunning = false, kegelInterval = null;
+  var kegelContract = 3, kegelRelax = 6, kegelTimer = 0, kegelContracting = true, kegelProgress = 0;
+  var kegelTotal = 10;
+
+  function setLevel(el, name, contract, relax) {
+    document.querySelectorAll('.level-tab').forEach(function(t) { t.classList.remove('active'); });
+    el.classList.add('active');
+    kegelContract = contract; kegelRelax = relax;
+    clearInterval(kegelInterval); kegelRunning = false;
+    document.getElementById('kegel-btn').textContent = 'INICIAR TREINO';
+    document.getElementById('kegel-time').textContent = contract;
+    document.getElementById('kegel-phase').textContent = 'CONTRAÇÃO';
+    document.getElementById('kegel-fill').style.width = '0%';
+    kegelProgress = 0; kegelContracting = true; kegelTimer = contract;
+  }
+
+  function toggleKegel() {
+    if (!kegelRunning) {
+      kegelRunning = true; kegelContracting = true; kegelTimer = kegelContract; kegelProgress = 0;
+      document.getElementById('kegel-btn').textContent = 'PAUSAR';
+      document.getElementById('kegel-phase').textContent = 'CONTRAÇÃO';
+      document.getElementById('kegel-fill').style.width = '0%';
+      kegelInterval = setInterval(runKegel, 1000);
+    } else {
+      clearInterval(kegelInterval); kegelRunning = false;
+      document.getElementById('kegel-btn').textContent = 'INICIAR TREINO';
+    }
+  }
+
+  function runKegel() {
+    document.getElementById('kegel-time').textContent = kegelTimer;
+    var total = kegelContract + kegelRelax;
+    var elapsed = kegelContracting ? (kegelContract - kegelTimer) : (kegelContract + kegelRelax - kegelTimer);
+    var pct = Math.round((kegelProgress * total + elapsed) / (kegelTotal * total) * 100);
+    document.getElementById('kegel-fill').style.width = Math.min(pct, 100) + '%';
+    kegelTimer--;
+    if (kegelTimer < 0) {
+      kegelContracting = !kegelContracting;
+      kegelTimer = kegelContracting ? kegelContract : kegelRelax;
+      if (kegelContracting) kegelProgress++;
+      document.getElementById('kegel-phase').textContent = kegelContracting ? 'CONTRAÇÃO' : 'RELAXAR';
+      document.getElementById('kegel-sub').textContent = kegelContracting ? 'segure e respire normalmente' : 'solte completamente';
+      if (kegelProgress >= kegelTotal) {
+        clearInterval(kegelInterval); kegelRunning = false;
+        document.getElementById('kegel-phase').textContent = 'CONCLUÍDO!';
+        document.getElementById('kegel-time').textContent = '✓';
+        document.getElementById('kegel-fill').style.width = '100%';
+        document.getElementById('kegel-btn').textContent = 'REINICIAR TREINO';
+      }
+    }
+  }
+</script>
